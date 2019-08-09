@@ -1,6 +1,5 @@
-<!-- extend from base layout -->
 {% extends 'flicket_base.html' %}
-
+<!-- extend from base layout -->
 {% block content %}
     <div class="container">
         <h1>{{ title }}</h1>
@@ -18,7 +17,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="autocomplete-username">Name</label>
                 <div class="col-sm-5">
-                    {{ form.name(class="form-control", id="autocomplete-username") }}
+                    {{ form.username(class="form-control", id="autocomplete-username") }}
                 </div>
                 <div class="col-sm-2">
                     {{ form.submit }}
@@ -27,9 +26,9 @@
                     <a class="btn btn-default" href="{{ url_for('flicket_bp.flicket_users') }}">reset</a>
                 </div>
             </div>
-            {% if form.name.errors %}
+            {% if form.username.errors %}
                 <div class="alert alert-warning small">
-                    {% for error in form.name.errors %}
+                    {% for error in form.username.errors %}
                         {{ error }}
                     {% endfor %}
                 </div>
@@ -57,22 +56,22 @@
         <table class="table table-striped">
             <tr>
                 <th>
-                    Username
+                    {{ _('Username') }}
                 </th>
                 <th>
-                    Name
+                    {{ _('Name') }}
                 </th>
                 <th>
-                    Email
+                    {{ _('Email') }}
                 </th>
                 <th>
-                    Job Title
+                    {{ _('Job Title') }}
                 </th>
                 <th class="text-center">
-                    Posts
+                    {{ _('Posts') }}
                 </th>
                 <th class="text-center">
-                    Assigned
+                    {{ _('Assigned') }}
                 </th>
             </tr>
             {% for u in users.items %}
@@ -80,7 +79,9 @@
                     <td>
 
                         <a href="{{ url_for('flicket_bp.flicket_user', user_id=u.id) }}">
-                        {%- if u.is_admin -%}
+                        {%- if u.is_super_user -%}
+                        <span class="glyphicon glyphicon-user" aria-hidden="true" style="color:#7e18ff"></span>
+                        {%- elif u.is_admin -%}
                         <span class="glyphicon glyphicon-user" aria-hidden="true" style="color:red"></span>
                         {%- endif %}
                         {{ u.username }}</a>
@@ -98,7 +99,7 @@
                         {{ u.total_posts }}
                     </td>
                     <td class="text-center">
-                        {{ details(u).num_assigned }}
+                        {{ u.total_assigned }}
                     </td>
                 </tr>
             {% endfor %}

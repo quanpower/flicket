@@ -1,12 +1,10 @@
-<!-- extend from base layout -->
 {% extends "flicket_base.html" %}
+<!-- extend from base layout -->
 {% block content %}
 <div class="container">
     <h1>{{ title }}</h1>
 
-
     {{ show_markdown(content)|safe }}
-
 
 </div>
 {% endblock %}

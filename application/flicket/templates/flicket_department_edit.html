@@ -1,7 +1,5 @@
-<!-- extend from base layout -->
 {% extends "flicket_base.html" %}
-
-
+<!-- extend from base layout -->
 {% block content %}
     <div class="container">
         <h1>{{ title }}</h1>
@@ -15,7 +13,7 @@
 
 
             <div class="form-group">
-                <label class="col-sm-2 control-label">Department</label>
+                <label class="col-sm-2 control-label">{{ _('Department') }}</label>
                 <div class="col-sm-3">
                     {{ form.department(class="form-control") }}
                 </div>

@@ -15,12 +15,13 @@ from flask import (flash,
 from flask_login import (current_user,
                          login_user,
                          logout_user)
-from flask_mail import Mail
 from flask_principal import (Identity,
                              identity_changed)
+from flask_babel import gettext
 
 from application import app, lm, db, flicket_bp
 from application import __version__
+from application.flicket_admin.models.flicket_config import FlicketConfig
 from application.flicket.forms.form_login import LogInForm
 from application.flicket.models.flicket_user import FlicketUser
 from application.flicket.scripts.flicket_config import set_flicket_config
@@ -46,12 +47,19 @@ def load_user(user_id):
     return FlicketUser.query.get(int(user_id))
 
 
-# before any view is generated the user must be checked application configuration details pulled from the database.
+# before any view is generated the user must be checked and application configuration details pulled from the database.
 @app.before_request
 def before_request():
     set_flicket_config()
     g.user = current_user
+
+    # used in the page footer
     g.__version__ = __version__
+
+    # page title
+    application_title = FlicketConfig.query.first().application_title
+
+    g.application_title = application_title
 
 
 # add 403 error handler
@@ -90,7 +98,12 @@ def login():
         # set the user token, authentication token is required for api use.
         user.get_token()
         db.session.commit()
-        flash('You were logged in successfully.', category='success')
+
+        if user.email is None or user.email == '':
+            flash(gettext('Please set your email and job title.'), category='danger')
+            return redirect(url_for('flicket_bp.user_details'))
+        else:
+            flash(gettext('You were logged in successfully.'), category='success')
         return redirect(url_for('flicket_bp.index'))
 
     return render_template('login.html', title='Log In', form=form)
@@ -102,5 +115,5 @@ def logout():
     g.user.revoke_token()
     db.session.commit()
     logout_user()
-    flash('You were logged out successfully.', category='success')
+    flash(gettext('You were logged out successfully.'), category='success')
     return redirect(url_for('flicket_bp.index'))

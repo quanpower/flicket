@@ -11,7 +11,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class BaseConfiguration(object):
-    WriteConfigJson().json_exists()
+    WriteConfigJson.json_exists()
 
     # get data from config file
     with open(config_file, 'r') as f:
@@ -40,6 +40,7 @@ class BaseConfiguration(object):
 
     # default flicket_admin group name
     ADMIN_GROUP_NAME = 'flicket_admin'
+    SUPER_USER_GROUP_NAME = 'super_user'
 
     SECRET_KEY = config_data['SECRET_KEY']
 
@@ -49,7 +50,6 @@ class BaseConfiguration(object):
     FLICKET = WEBHOME + ''
     FLICKET_API = WEBHOME + 'flicket-api/'
     FLICKET_REST_API = WEBHOME + 'flicket-rest-api'
-    FLICKET_API_V2 = '/flicket-api-v2/'
     ADMINHOME = '/flicket_admin/'
 
     # flicket user used to post replies to tickets for status changes.
@@ -57,6 +57,10 @@ class BaseConfiguration(object):
                     'username': 'notification',
                     'password': config_data['NOTIFICATION_USER_PASSWORD'],
                     'email': 'admin@localhost'}
+
+    SUPPORTED_LANGUAGES = {'en': 'English', 'fr': 'Francais'}
+    BABEL_DEFAULT_LOCALE = 'en'
+    BABEL_DEFAULT_TIMEZONE = 'UTC'
 
 
 class TestConfiguration(BaseConfiguration):

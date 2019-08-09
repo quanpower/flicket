@@ -1,11 +1,9 @@
-<!-- extend from base layout -->
 {% extends "flicket_base.html" %}
-
-
+<!-- extend from base layout -->
 {% block content %}
     <div class="container">
         <h1>{{ title }}</h1>
-        <p>If you require new departments and / or categories added / deleted, please raise a ticket.</p>
+        <p>{{ _('If you require new departments and / or categories added / deleted, please raise a ticket.') }}</p>
 
         <form action=""
               class="form-horizontal"
@@ -63,7 +61,7 @@
                 <tr>
                     <td>
                         {{ d.department }}
-                        {% if g.user.is_admin %}
+                        {% if g.user.is_admin or g.user.is_super_user %}
                         <span class="small">
                             <a href="{{ url_for('flicket_bp.department_edit', department_id=d.id) }}" title="edit"> <span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
                         </span>
@@ -74,7 +72,7 @@
                     </td>
                     <td>
                         {% for c in d.categories %}{{ c.category }}
-                            {%- if g.user.is_admin -%}
+                            {%- if g.user.is_admin or g.user.is_super_user -%}
                             <span class="small">
                                 <a href="{{ url_for('flicket_bp.category_edit', category_id=c.id) }}" title="edit"> <span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
                             </span>
@@ -85,7 +83,7 @@
                             </span>
                             {%- endif -%},
                         {% endfor %}
-                        {% if g.user.is_admin %}<small class="small"><a href="{{ url_for('flicket_bp.categories', department_id=d.id) }}">add categories</a></small>{% endif %}
+                        {% if g.user.is_admin or g.user.is_super_user %}<small class="small"><a href="{{ url_for('flicket_bp.categories', department_id=d.id) }}">add categories</a></small>{% endif %}
                     </td>
                 </tr>
             {% endfor %}

@@ -6,7 +6,7 @@
 from flask import url_for
 from flask_pagedown.fields import PageDownField
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, HiddenField, SubmitField, FileField
+from wtforms import StringField, SelectField, HiddenField, SubmitField, FileField
 from wtforms.fields import SelectMultipleField
 from wtforms.validators import DataRequired, Length
 from wtforms.widgets import ListWidget, CheckboxInput
@@ -19,6 +19,7 @@ from application.flicket.models.flicket_models import (FlicketCategory,
                                                        field_size)
 from application.flicket.models.flicket_user import FlicketUser, user_field_size
 from application.flicket.scripts.upload_choice_generator import generate_choices
+from flask_babel import gettext
 
 form_class_button = {'class': 'btn btn-primary'}
 form_danger_button = {'class': 'btn btn-danger'}
@@ -34,7 +35,7 @@ def does_email_exist(form, field):
     if form.email.data:
         result = FlicketUser.query.filter_by(email=form.email.data).count()
         if result == 0:
-            field.errors.append('Can\'t find user.')
+            field.errors.append(gettext('Can\'t find user.'))
             return False
     else:
         return False
@@ -52,7 +53,7 @@ def does_user_exist(form, field):
     if form.username.data:
         result = FlicketUser.query.filter_by(username=form.username.data).count()
         if result == 0:
-            field.errors.append('Can\'t find user.')
+            field.errors.append(gettext('Can\'t find user.'))
             return False
     else:
         return False
@@ -69,7 +70,7 @@ def does_department_exist(form, field):
     """
     result = FlicketDepartment.query.filter_by(department=form.department.data).count()
     if result > 0:
-        field.errors.append('Department already exists.')
+        field.errors.append(gettext('Department already exists.'))
         return False
 
     return True
@@ -85,7 +86,7 @@ def does_category_exist(form, field):
     result = FlicketCategory.query.filter_by(category=form.category.data).filter_by(
         department_id=form.department_id.data).count()
     if result > 0:
-        field.errors.append('Category already exists.')
+        field.errors.append(gettext('Category already exists.'))
         return False
 
     return True
@@ -107,8 +108,8 @@ class CreateTicketForm(FlaskForm):
                                                                           max=field_size['content_max_length'])])
     priority = SelectField('priority', validators=[DataRequired()], coerce=int)
     category = SelectField('category', validators=[DataRequired()], coerce=int)
-    file = FileField('Upload Documents', render_kw={'multiple': True})
-    submit = SubmitField('Submit', render_kw=form_class_button, validators=[DataRequired()])
+    file = FileField(gettext('Upload Documents'), render_kw={'multiple': True})
+    submit = SubmitField(gettext('Submit'), render_kw=form_class_button, validators=[DataRequired()])
 
 
 class MultiCheckBoxField(SelectMultipleField):
@@ -133,20 +134,24 @@ class EditTicketForm(CreateTicketForm):
             self.uploads.choices.append((x[0], uri_label))
 
     uploads = MultiCheckBoxField('Label', coerce=int)
-    submit = SubmitField('Edit Ticket', render_kw=form_class_button, validators=[DataRequired()])
+    submit = SubmitField(gettext('Edit Ticket'), render_kw=form_class_button, validators=[DataRequired()])
 
 
 class ReplyForm(FlaskForm):
     """ Content form. Displayed when replying too end editing tickets """
+
     def __init__(self, *args, **kwargs):
         form = super(ReplyForm, self).__init__(*args, **kwargs)
-        self.status.choices = [(s.id, s.status) for s in FlicketStatus.query.all()]
-    content = PageDownField('Reply', validators=[DataRequired(), Length(min=field_size['content_min_length'],
-                                                                        max=field_size['content_max_length'])])
-    file = FileField('Upload Documents', render_kw={'multiple': True})
-    status = SelectField('Status', validators=[DataRequired()], coerce=int)
-    submit = SubmitField('submit reply', render_kw=form_class_button)
-    submit_close = SubmitField('reply and close', render_kw=form_danger_button)
+        self.status.choices = [(s.id, s.status) for s in FlicketStatus.query.filter(FlicketStatus.status != 'Closed')]
+        self.priority.choices = [(p.id, p.priority) for p in FlicketPriority.query.all()]
+
+    content = PageDownField(gettext('Reply'), validators=[DataRequired(), Length(min=field_size['content_min_length'],
+                                                                                 max=field_size['content_max_length'])])
+    file = FileField(gettext('Add Files'), render_kw={'multiple': True})
+    status = SelectField(gettext('Status'), validators=[DataRequired()], coerce=int)
+    priority = SelectField(gettext('Priority'), validators=[DataRequired()], coerce=int)
+    submit = SubmitField(gettext('submit reply'), render_kw=form_class_button)
+    submit_close = SubmitField(gettext('reply and close'), render_kw=form_danger_button)
 
 
 class EditReplyForm(ReplyForm):
@@ -155,22 +160,19 @@ class EditReplyForm(ReplyForm):
         self.uploads.choices = generate_choices('Post', id=post_id)
 
     uploads = MultiCheckBoxField('Label', coerce=int)
-    submit = SubmitField('Edit Reply', render_kw=form_class_button, validators=[DataRequired()])
+    submit = SubmitField(gettext('Edit Reply'), render_kw=form_class_button, validators=[DataRequired()])
 
 
 class SearchUserForm(FlaskForm):
     """ Search user. """
-    name = StringField('name', validators=[DataRequired(), Length(min=user_field_size['username_min'],
-                                                                  max=user_field_size['username_max'])])
-    submit = SubmitField('search user', render_kw=form_class_button)
+    username = StringField('username', validators=[DataRequired(), Length(min=user_field_size['username_min'],
+                                                                          max=user_field_size['username_max'])])
+    submit = SubmitField(gettext('search user'), render_kw=form_class_button)
 
 
-class SearchEmailForm(FlaskForm):
-    """ Search email form. """
-    email = StringField('email', validators=[DataRequired(), does_email_exist, Length(min=user_field_size['email_min'],
-                                                                                      max=user_field_size[
-                                                                                          'email_max'])])
-    submit = SubmitField('assign', render_kw=form_class_button)
+class AssignUserForm(SearchUserForm):
+    """ Search user. """
+    submit = SubmitField(gettext('assign user'), render_kw=form_class_button)
 
 
 class DepartmentForm(FlaskForm):
@@ -178,7 +180,7 @@ class DepartmentForm(FlaskForm):
     department = StringField('Department', validators=[DataRequired(), Length(min=field_size['department_min_length'],
                                                                               max=field_size['department_max_length']),
                                                        does_department_exist])
-    submit = SubmitField('add department', render_kw=form_class_button)
+    submit = SubmitField(gettext('add department'), render_kw=form_class_button)
 
 
 class CategoryForm(FlaskForm):
@@ -187,4 +189,4 @@ class CategoryForm(FlaskForm):
                                                                           max=field_size['category_max_length']),
                                                    does_category_exist])
     department_id = HiddenField('department_id')
-    submit = SubmitField('add category', render_kw=form_class_button)
+    submit = SubmitField(gettext('add category'), render_kw=form_class_button)

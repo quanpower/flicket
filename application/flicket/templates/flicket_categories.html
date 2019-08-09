@@ -1,7 +1,5 @@
-<!-- extend from base layout -->
 {% extends "flicket_base.html" %}
-
-
+<!-- extend from base layout -->
 {% block content %}
     <div class="container">
         <h1>{{ title }}</h1>
@@ -35,18 +33,24 @@
 
         </form>
 
-        <h2>Existing Categories</h2>
+        <h2>{{ _('Existing Categories') }}</h2>
 
         <table class="table table-bordered">
             <tr>
                 <th>
-                    Category
+                    {{ _('Category') }}
                 </th>
             </tr>
             {% for c in categories %}
                 <tr>
                     <td>
-                        {{ c.category }}&nbsp;&nbsp;<span class="small"><a href="{{ url_for('flicket_bp.category_edit', category_id=c.id) }}">edit</a></span>
+                        {{ c.category }}&nbsp;&nbsp;<span class="small"><a
+                            href="{{ url_for('flicket_bp.category_edit', category_id=c.id) }}">{{ _('edit') }}</a></span>
+                            <span class="small">
+                                <a href="{{ url_for('flicket_bp.delete_category', category_id=c.id) }}" title="delete">
+                                    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                                </a>
+                            </span>
                     </td>
                 </tr>
             {% endfor %}

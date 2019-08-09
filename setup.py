@@ -17,9 +17,10 @@ admin = 'admin'
 
 # configuration defaults for flicket
 flicket_config = {'posts_per_page': 50,
-                  'allowed_extensions': ['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'],
+                  'allowed_extensions': ['txt', 'log', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'msg', 'doc', 'docx', 'ppt',
+                                         'pptx', 'xls', 'xlsx'],
                   'ticket_upload_folder': 'application/flicket/static/flicket_uploads',
-                  'avatar_upload_folder': 'application/flicket/static/flicket_avatars'
+                  'avatar_upload_folder': 'application/flicket/static/flicket_avatars',
                   }
 
 # departments and categories defaults for flicket
@@ -67,7 +68,10 @@ class RunSetUP(Command):
             allowed_extensions=', '.join(flicket_config['allowed_extensions']),
             ticket_upload_folder=flicket_config['ticket_upload_folder'],
             avatar_upload_folder=flicket_config['avatar_upload_folder'],
-            base_url=base_url
+            base_url=base_url,
+            application_title='Flicket',
+            mail_max_emails=10,
+            mail_port=465
         )
 
         if not silent:
@@ -132,7 +136,7 @@ class RunSetUP(Command):
 
     @staticmethod
     def create_admin_group(silent=False):
-        """ creates flicket_admin group and assigns flicket_admin to group. """
+        """ creates flicket_admin and super_user group and assigns flicket_admin to group admin. """
 
         query = FlicketGroup.query.filter_by(group_name=app.config['ADMIN_GROUP_NAME'])
         if query.count() == 0:
@@ -154,6 +158,15 @@ class RunSetUP(Command):
             if not silent:
                 print("Added flicket_admin user to flicket_admin group.")
 
+        #  create the super_user group
+        query = FlicketGroup.query.filter_by(group_name=app.config['SUPER_USER_GROUP_NAME'])
+        if query.count() == 0:
+            add_group = FlicketGroup(group_name=app.config['SUPER_USER_GROUP_NAME'])
+            db.session.add(add_group)
+            if not silent:
+                print("super_user group added")
+
+    # noinspection PyArgumentList
     @staticmethod
     def create_default_ticket_status(silent=False):
         """ set up default status levels """

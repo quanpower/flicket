@@ -7,18 +7,18 @@ import datetime
 import os
 
 from flask import redirect, url_for, flash, render_template, g, request
+from flask_babel import gettext
 from flask_login import login_required
 
 from . import flicket_bp
 from application import app, db
 from application.flicket.forms.flicket_forms import EditTicketForm, EditReplyForm
-from application.flicket.models.flicket_models import (FlicketCategory,
-                                                       FlicketHistory,
-                                                       FlicketTicket,
-                                                       FlicketPost,
-                                                       FlicketPriority,
-                                                       FlicketStatus,
-                                                       FlicketUploads)
+from application.flicket.models.flicket_models import FlicketHistory
+from application.flicket.models.flicket_models import FlicketPost
+from application.flicket.models.flicket_models import FlicketTicket
+from application.flicket.models.flicket_models import FlicketUploads
+from application.flicket.models.flicket_models_ext import FlicketTicketExt
+from application.flicket.scripts.flicket_functions import add_action
 from application.flicket.scripts.flicket_functions import is_ticket_closed
 from application.flicket.scripts.flicket_upload import UploadAttachment
 
@@ -32,7 +32,7 @@ def edit_ticket(ticket_id):
     ticket = FlicketTicket.query.filter_by(id=ticket_id).first()
 
     if not ticket:
-        flash('Could not find ticket.', category='warning')
+        flash(gettext('Could not find ticket.'), category='warning')
         return redirect(url_for('flicket_bp.flicket_main'))
 
     # check to see if topic is closed. ticket can't be edited once it's closed.
@@ -45,60 +45,23 @@ def edit_ticket(ticket_id):
         not_authorised = False
 
     if not_authorised:
-        flash('You are not authorised to edit this ticket.', category='warning')
+        flash(gettext('You are not authorised to edit this ticket.'), category='warning')
         return redirect(url_for('flicket_bp.ticket_view', ticket_id=ticket_id))
 
     if form.validate_on_submit():
+        ticket_id = FlicketTicketExt.edit_ticket(
+            ticket=ticket,
+            title=form.title.data,
+            user=g.user,
+            content=form.content.data,
+            priority=form.priority.data,
+            category=form.category.data,
+            files=request.files.getlist("file"),
+            form_uploads=form.uploads.data,
+        )
 
-        # before we make any changes store the original post content in the history table if it has changed.
-        if ticket.modified_id:
-            history_id = ticket.modified_id
-        else:
-            history_id = ticket.started_id
-        if ticket.content != form.content.data:
-            history = FlicketHistory(
-                original_content=ticket.content,
-                topic=ticket,
-                date_modified=datetime.datetime.now(),
-                user_id=history_id
-            )
-            db.session.add(history)
-
-        # loop through the selected uploads for deletion.
-        if len(form.uploads.data) > 0:
-            for i in form.uploads.data:
-                # get the upload document information from the database.
-                query = FlicketUploads.query.filter_by(id=i).first()
-                # define the full uploaded filename
-                the_file = os.path.join(app.config['ticket_upload_folder'], query.filename)
-
-                if os.path.isfile(the_file):
-                    # delete the file from the folder
-                    os.remove(the_file)
-
-                db.session.delete(query)
-
-        ticket_priority = FlicketPriority.query.filter_by(id=int(form.priority.data)).first()
-        ticket_category = FlicketCategory.query.filter_by(id=int(form.category.data)).first()
-
-        ticket.content = form.content.data
-        ticket.title = form.title.data
-        ticket.modified = g.user
-        ticket.date_modified = datetime.datetime.now()
-        ticket.status_id = form.status.data
-        ticket.ticket_priority = ticket_priority
-        ticket.category = ticket_category
-
-        files = request.files.getlist("file")
-        upload_attachments = UploadAttachment(files)
-        if upload_attachments.are_attachements():
-            upload_attachments.upload_files()
-
-        # add files to database.
-        upload_attachments.populate_db(ticket)
-
-        db.session.commit()
         flash('Ticket successfully edited.', category='success')
+
         return redirect(url_for('flicket_bp.ticket_view', ticket_id=ticket_id))
 
     form.content.data = ticket.content
@@ -106,8 +69,10 @@ def edit_ticket(ticket_id):
     form.title.data = ticket.title
     form.category.data = ticket.category_id
 
+    title = gettext('Edit Ticket')
+
     return render_template('flicket_edittopic.html',
-                           title='Flicket - Edit Ticket',
+                           title=title,
                            form=form)
 
 
@@ -173,7 +138,13 @@ def edit_post(post_id):
         post.modified = g.user
         post.date_modified = datetime.datetime.now()
 
-        post.ticket.status_id = form.status.data
+        if post.ticket.status_id != form.status.data:
+            post.ticket.status_id = form.status.data
+            add_action(action=post.ticket.current_status.status, ticket=post.ticket)
+
+        if post.ticket.ticket_priority_id != form.priority.data:
+            post.ticket.ticket_priority_id = form.priority.data
+            add_action(action=post.ticket.ticket_priority.priority, ticket=post.ticket)
 
         files = request.files.getlist("file")
         upload_attachments = UploadAttachment(files)
@@ -191,5 +162,5 @@ def edit_post(post_id):
     form.content.data = post.content
 
     return render_template('flicket_editpost.html',
-                           title='Flicket - Edit Post',
+                           title='Edit Post',
                            form=form)

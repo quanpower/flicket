@@ -42,6 +42,19 @@ header {
     padding: 10pt;
 }
 
+/* force white background as some browsers themes bugger up the admin config forms */
+input {
+    background-color: white;
+}
+
+input[type="checkbox"] {
+    background-color: white;
+}
+
+input[type="radio"] {
+    background-color: white;
+}
+
 .white_space {
     white-space: pre-wrap;
 }
@@ -76,6 +89,7 @@ header {
     border-radius: 3px;
     background-color: #e8f5f3;
     padding: 10px;
+    display: none;
 }
 
 .flicket-btn, .flicket-btn-subscribe, .flicket-btn-unsubscribe {
@@ -135,8 +149,7 @@ header {
 }
 
 .flicket-post-attachments {
-    padding: 10px;
-    padding-right: 0px;
+    padding: 10px 0px 10px 10px;
     border-top: solid Silver 1px;
 }
 
@@ -165,6 +178,7 @@ header {
 
 .flicket-row-action {
     background-color: #fff;
+    margin-top: 2px;
     margin-left: 20px;
     margin-right: 20px;
     padding: 5px 20px;
@@ -232,15 +246,22 @@ header {
     text-decoration: None;
 }
 
-td {
-    position: relative;
+.flicket-status-high {
+    background-color: #EEA28B
 }
 
-tr.strikeout td:before {
-    content: " ";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    border-bottom: 1px solid #111;
-    width: 100%;
+.flicket-status-medium {
+    background-color: rgba(255, 181, 145, 0.58);
+}
+
+.flicket-status-low {
+    background-color: #FFFFFF;
+}
+
+.flicket-status-closed {
+    color: #aaaaaa;
+}
+
+td {
+    position: relative;
 }

@@ -11,7 +11,6 @@ form_class_button = {'class': 'btn btn-primary'}
 
 
 class ConfigForm(FlaskForm):
-
     mail_server = StringField('mail_server', validators=[])
     mail_port = IntegerField('mail_port', validators=[NumberRange(min=1, max=65535)])
     mail_use_tls = BooleanField('mail_use_tls', validators=[])
@@ -24,9 +23,15 @@ class ConfigForm(FlaskForm):
     mail_suppress_send = BooleanField('mail_suppress_send', validators=[])
     mail_ascii_attachments = BooleanField('mail_ascii_attachments', validators=[])
 
+    application_title = StringField('application_title', validators=[DataRequired(), Length(min=3, max=32)])
     posts_per_page = IntegerField('posts_per_page', validators=[DataRequired(), NumberRange(min=10, max=200)])
     allowed_extensions = StringField('allowed_extensions', validators=[DataRequired()])
     ticket_upload_folder = StringField('ticket_upload_folder', validators=[DataRequired()])
     base_url = StringField('base_url', validators=[Length(min=0, max=128)])
+
+    use_auth_domain = BooleanField('use_auth_domain', validators=[])
+    auth_domain = StringField('auth_domain', validators=[])
+
+    csv_dump_limit = IntegerField('csv_dump_limit', validators=[])
 
     submit = SubmitField('Submit', render_kw=form_class_button, validators=[DataRequired()])

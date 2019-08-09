@@ -6,7 +6,7 @@ __pycache__/
 .idea/
 
 __archive__
-screenshots*
+__other__
 config.json
 users.json
 migrations
@@ -18,3 +18,7 @@ test.py
 env*/
 .directory
 .cache/v/cache/lastfailed
+
+*sublime*
+
+docs/_build/*
